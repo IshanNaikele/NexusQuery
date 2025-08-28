@@ -1,0 +1,10 @@
+langchain
+langchain_community
+pymupdf
+langchain_huggingface
+sentence-transformers
+langchain-pinecone
+fastapi[all]
+streamlit 
+langchain_groq
+rank_bm25
