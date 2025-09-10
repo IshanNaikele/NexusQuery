@@ -22,9 +22,10 @@ class QueryRequest(BaseModel):
     chat_history: List[tuple] = []
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+
 llm = ChatGroq(
     groq_api_key=GROQ_API_KEY,
-    model="llama3-70b-8192"
+    model="llama-3.1-8b-instant"
 )
 
 # Global variable to store documents
@@ -65,4 +66,4 @@ async def query_endpoint(request: QueryRequest):
         llm, 
         document_store=document_store   
     )
-    return {"query": request.query, "answer": answer}
+    return { "answer": answer}

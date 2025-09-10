@@ -7,9 +7,9 @@ from typing import Any
 from fastapi import HTTPException
 from dotenv import load_dotenv
 load_dotenv()
+
 index_name = "nexus-query-index"
- 
- 
+
 embedding_dim = 768
 
 

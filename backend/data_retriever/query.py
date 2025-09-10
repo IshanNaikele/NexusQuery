@@ -17,7 +17,7 @@ def get_answer_from_docs(query:str,chat_history:list,pc:Pinecone,embeddings:Hugg
 
         pinecone_retriever=pinecone_vector_store.as_retriever()
         bm25_retriever=BM25Retriever.from_texts(document_store, k=5)
-        bm25_retriever.k = 5
+         
         ensemble_retriever = EnsembleRetriever(
             retrievers=[bm25_retriever, pinecone_retriever],
             weights=[0.5, 0.5]   
@@ -26,8 +26,7 @@ def get_answer_from_docs(query:str,chat_history:list,pc:Pinecone,embeddings:Hugg
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
         retrieval_qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
-        retriever=ensemble_retriever,
-         
+        retriever=ensemble_retriever,  
         return_source_documents=True   
         )
 
