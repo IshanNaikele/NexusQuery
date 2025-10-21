@@ -36,12 +36,23 @@ if uploaded_file and not st.session_state.document_uploaded:
 # Query section
 if st.session_state.document_uploaded:
     st.divider()
+
+    # Display chat history
+    if st.session_state.chat_history:
+        st.subheader("💬 Chat History")
+        for i, (question, answer) in enumerate(st.session_state.chat_history):
+            with st.expander(f"Q{i+1}: {question[:50]}..."):
+                st.write(f"**Question:** {question}")
+                st.write(f"**Answer:** {answer}")
+
+
     query = st.text_input("💭 Ask a question:", placeholder="What is this document about?")
     
     if st.button("Get Answer", type="primary"):
         if query:
             with st.spinner("Searching..."):
                 try:
+                    formatted_history = [[q, a] for q, a in st.session_state.chat_history]
                     payload = {
                         "query": query, 
                         "chat_history": st.session_state.chat_history
@@ -49,12 +60,16 @@ if st.session_state.document_uploaded:
                     response = requests.post(f"{BACKEND_URL}/query", json=payload)
                     
                     if response.status_code == 200:
-                        answer = response.json()["answer"]
+                        result = response.json()
+                        answer = result["answer"]
                         st.success("📝 Answer:")
                         st.write(answer)
                         
                         # Update chat history
-                        st.session_state.chat_history.append((query, answer))
+                        st.session_state.chat_history = [(q, a) for q, a in result.get("chat_history", [])]
+
+                        st.rerun()
+
                     else:
                         st.error(f"❌ Query failed: {response.json().get('detail', 'Unknown error')}")
                 except Exception as e:
@@ -64,7 +79,13 @@ if st.session_state.document_uploaded:
 
 # Reset button
 if st.session_state.document_uploaded:
-    if st.button("🔄 Upload New Document"):
-        st.session_state.document_uploaded = False
-        st.session_state.chat_history = []
-        st.rerun()
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 Upload New Document"):
+            st.session_state.document_uploaded = False
+            st.session_state.chat_history = []
+            st.rerun()
+    with col2:
+        if st.button("🗑️ Clear Chat History"):
+            st.session_state.chat_history = []
+            st.rerun()

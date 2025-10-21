@@ -3,7 +3,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 from pinecone import Pinecone
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional,Tuple
 import tempfile
 import shutil
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 
 class QueryRequest(BaseModel):
     query: str
-    chat_history: List[tuple] = []
+    chat_history: List[List[str]] = []
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
@@ -58,12 +58,18 @@ async def query_endpoint(request: QueryRequest):
     if document_store is None or len(document_store) == 0:
         raise HTTPException(status_code=400, detail="No documents have been ingested yet.")
     
-    answer = get_answer_from_docs(
+    formatted_chat_history = [(msg[0], msg[1]) for msg in request.chat_history if len(msg) == 2]
+
+    result = get_answer_from_docs(
         request.query, 
-        request.chat_history, 
+        formatted_chat_history,
         pc, 
         embeddings, 
         llm, 
         document_store=document_store   
     )
-    return { "answer": answer}
+
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result
